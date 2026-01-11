@@ -1,8 +1,12 @@
 import { typeDefs } from "./typeDefs";
+import { userResolvers } from "./resolvers/userResolver";
 
 export const resolvers = {
   Query: {
-    hello: () => "Hello from Koyo E-Learning Platform! 🚀",
+    ...userResolvers.Query,
+  },
+  Mutation: {
+    ...userResolvers.Mutation,
   },
 };
 
