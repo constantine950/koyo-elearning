@@ -3,6 +3,7 @@ import { ApolloServer } from "apollo-server-express";
 import cors from "cors";
 import { typeDefs, resolvers } from "./graphql/schema";
 import { connectDB } from "./config/db";
+import { authenticate } from "./middlewares/auth";
 
 export const startServer = async () => {
   const app = express();
@@ -18,12 +19,14 @@ export const startServer = async () => {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req }) => ({ req }),
+    context: async ({ req }) => {
+      const user = await authenticate(req);
+      return { req, user };
+    },
   });
 
   await server.start();
 
-  // Use type assertion to fix the compatibility issue
   server.applyMiddleware({
     app: app as any,
     path: "/graphql",

@@ -1,17 +1,15 @@
 import User from "../../models/User";
 import { generateToken } from "../../utils/token";
 import { GraphQLError } from "graphql";
+import { requireAuth } from "../../middlewares/auth";
+import { Context } from "../../types/context";
 
 export const userResolvers = {
   Query: {
     hello: () => "Hello from Koyo E-Learning Platform! 🚀",
 
-    me: async (_: any, __: any, context: any) => {
-      if (!context.user) {
-        throw new GraphQLError("Not authenticated", {
-          extensions: { code: "UNAUTHENTICATED" },
-        });
-      }
+    me: async (_: any, __: any, context: Context) => {
+      requireAuth(context);
       return context.user;
     },
   },
@@ -28,7 +26,7 @@ export const userResolvers = {
         });
       }
 
-      // Create new user
+      // Create new user (convert role to lowercase)
       const user = await User.create({
         name,
         email,
