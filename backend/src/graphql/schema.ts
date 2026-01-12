@@ -8,6 +8,10 @@ export const resolvers = {
   Mutation: {
     ...userResolvers.Mutation,
   },
+  User: {
+    // Transform lowercase role from DB to uppercase for GraphQL
+    role: (parent: any) => parent.role.toUpperCase(),
+  },
 };
 
 export { typeDefs };

@@ -33,7 +33,7 @@ export const userResolvers = {
         name,
         email,
         password,
-        role,
+        role: role.toLowerCase(),
       });
 
       // Generate token
