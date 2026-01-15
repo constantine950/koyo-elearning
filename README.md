@@ -580,7 +580,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Constantine**
 
-- GitHub: [@Constantine](https://github.com/Constantine)
+- GitHub: [@Constantine](https://github.com/constantine950)
 - Email: omotoyosiadebeshin@gmail.com
 
 ---
