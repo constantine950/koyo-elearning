@@ -35,6 +35,33 @@ export const typeDefs = gql`
     updatedAt: String!
   }
 
+  type Review {
+    id: ID!
+    course: Course!
+    student: User!
+    rating: Int!
+    comment: String!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type CourseWithRating {
+    id: ID!
+    title: String!
+    description: String!
+    thumbnail: String
+    category: String!
+    instructor: User!
+    price: Float!
+    level: CourseLevel!
+    lessons: [Lesson!]
+    totalStudents: Int!
+    averageRating: Float!
+    totalReviews: Int!
+    createdAt: String!
+    updatedAt: String!
+  }
+
   type Course {
     id: ID!
     title: String!
@@ -45,8 +72,27 @@ export const typeDefs = gql`
     price: Float!
     level: CourseLevel!
     lessons: [Lesson!]
+    totalStudents: Int!
+    averageRating: Float!
+    totalReviews: Int!
     createdAt: String!
     updatedAt: String!
+  }
+
+  type Enrollment {
+    id: ID!
+    course: Course!
+    student: User!
+    enrolledAt: String!
+    progress: Float!
+    completedLessons: [Lesson!]!
+    lastAccessedAt: String!
+  }
+
+  type UploadResponse {
+    url: String!
+    publicId: String!
+    format: String!
   }
 
   type AuthPayload {
@@ -103,6 +149,17 @@ export const typeDefs = gql`
     isFree: Boolean
   }
 
+  input AddReviewInput {
+    courseId: ID!
+    rating: Int!
+    comment: String!
+  }
+
+  input UpdateReviewInput {
+    rating: Int
+    comment: String
+  }
+
   type Query {
     hello: String
     me: User
@@ -110,6 +167,11 @@ export const typeDefs = gql`
     getCourse(id: ID!): Course
     getLessons(courseId: ID!): [Lesson!]!
     getLesson(id: ID!): Lesson
+    myCourses: [Enrollment!]!
+    isEnrolled(courseId: ID!): Boolean!
+    getReviews(courseId: ID!): [Review!]!
+    getMyReview(courseId: ID!): Review
+    getTopRatedCourses(limit: Int): [Course!]!
   }
 
   type Mutation {
@@ -121,5 +183,12 @@ export const typeDefs = gql`
     createLesson(input: CreateLessonInput!): Lesson!
     updateLesson(id: ID!, input: UpdateLessonInput!): Lesson!
     deleteLesson(id: ID!): String!
+    enrollCourse(courseId: ID!): Enrollment!
+    markLessonComplete(lessonId: ID!): Enrollment!
+    uploadImage(file: String!, folder: String!): UploadResponse!
+    uploadVideo(file: String!, folder: String!): UploadResponse!
+    addReview(input: AddReviewInput!): Review!
+    updateReview(id: ID!, input: UpdateReviewInput!): Review!
+    deleteReview(id: ID!): String!
   }
 `;
