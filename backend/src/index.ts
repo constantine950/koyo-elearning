@@ -23,6 +23,17 @@ export const startServer = async () => {
       const user = await authenticate(req);
       return { req, user };
     },
+    formatError: (error) => {
+      // Log error for debugging
+      console.error("GraphQL Error:", error);
+
+      // Return formatted error
+      return {
+        message: error.message,
+        code: error.extensions?.code || "INTERNAL_SERVER_ERROR",
+        path: error.path,
+      };
+    },
   });
 
   await server.start();

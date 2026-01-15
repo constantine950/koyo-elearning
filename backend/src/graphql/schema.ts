@@ -5,6 +5,7 @@ import { lessonResolvers } from "./resolvers/lessonResolver";
 import { enrollmentResolvers } from "./resolvers/enrollmentResolver";
 import { uploadResolvers } from "./resolvers/uploadResolver";
 import { reviewResolvers } from "./resolvers/reviewResolver";
+import { analyticsResolvers } from "./resolvers/analyticsResolver";
 
 export const resolvers = {
   Query: {
@@ -13,6 +14,7 @@ export const resolvers = {
     ...lessonResolvers.Query,
     ...enrollmentResolvers.Query,
     ...reviewResolvers.Query,
+    ...analyticsResolvers.Query,
   },
   Mutation: {
     ...userResolvers.Mutation,

@@ -4,6 +4,7 @@ import Enrollment from "../../models/Enrollment";
 import { GraphQLError } from "graphql";
 import { requireAuth, requireRole } from "../../middlewares/auth";
 import { Context } from "../../types/context";
+import { validateReviewInput } from "../../utils/validation";
 
 export const reviewResolvers = {
   Query: {
@@ -77,6 +78,9 @@ export const reviewResolvers = {
   Mutation: {
     addReview: async (_: any, { input }: any, context: Context) => {
       requireRole(context, ["student"]);
+
+      // Validate input
+      validateReviewInput(input);
 
       const { courseId, rating, comment } = input;
 

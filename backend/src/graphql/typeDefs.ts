@@ -45,23 +45,6 @@ export const typeDefs = gql`
     updatedAt: String!
   }
 
-  type CourseWithRating {
-    id: ID!
-    title: String!
-    description: String!
-    thumbnail: String
-    category: String!
-    instructor: User!
-    price: Float!
-    level: CourseLevel!
-    lessons: [Lesson!]
-    totalStudents: Int!
-    averageRating: Float!
-    totalReviews: Int!
-    createdAt: String!
-    updatedAt: String!
-  }
-
   type Course {
     id: ID!
     title: String!
@@ -98,6 +81,27 @@ export const typeDefs = gql`
   type AuthPayload {
     token: String!
     user: User!
+  }
+
+  type MonthlyEnrollment {
+    month: String!
+    count: Int!
+  }
+
+  type TopCourse {
+    course: Course!
+    enrollmentCount: Int!
+    revenue: Float!
+  }
+
+  type InstructorAnalytics {
+    totalStudents: Int!
+    totalCourses: Int!
+    totalRevenue: Float!
+    monthlyEnrollments: [MonthlyEnrollment!]!
+    topCourses: [TopCourse!]!
+    averageRating: Float!
+    totalReviews: Int!
   }
 
   input RegisterInput {
@@ -172,6 +176,8 @@ export const typeDefs = gql`
     getReviews(courseId: ID!): [Review!]!
     getMyReview(courseId: ID!): Review
     getTopRatedCourses(limit: Int): [Course!]!
+    getInstructorAnalytics: InstructorAnalytics!
+    getInstructorCourses: [Course!]!
   }
 
   type Mutation {

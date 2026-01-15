@@ -3,6 +3,8 @@ import Course from "../../models/Course";
 import { GraphQLError } from "graphql";
 import { requireRole } from "../../middlewares/auth";
 import { Context } from "../../types/context";
+import { validateLessonInput } from "../../utils/validation";
+import { ForbiddenError, NotFoundError } from "../../middlewares/error";
 
 export const lessonResolvers = {
   Query: {
@@ -27,19 +29,20 @@ export const lessonResolvers = {
     createLesson: async (_: any, { input }: any, context: Context) => {
       requireRole(context, ["instructor"]);
 
+      // Validate input
+      validateLessonInput(input);
+
       // Check if course exists and belongs to the instructor
       const course = await Course.findById(input.courseId);
 
       if (!course) {
-        throw new GraphQLError("Course not found", {
-          extensions: { code: "NOT_FOUND" },
-        });
+        throw new NotFoundError("Course");
       }
 
       if (course.instructor.toString() !== context.user!.id) {
-        throw new GraphQLError("You can only add lessons to your own courses", {
-          extensions: { code: "FORBIDDEN" },
-        });
+        throw new ForbiddenError(
+          "You can only add lessons to your own courses"
+        );
       }
 
       const lesson = await Lesson.create(input);
