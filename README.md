@@ -581,8 +581,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Constantine**
 
 - GitHub: [@Constantine](https://github.com/Constantine)
-- LinkedIn: [Constantine](https://linkedin.com/in/constantine)
-- Email: constantine@koyo.com
+- Email: omotoyosiadebeshin@gmail.com
 
 ---
 
