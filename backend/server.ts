@@ -12,7 +12,6 @@ startServer().then((app) => {
   // Initialize Socket.io
   const io = initializeSocket(httpServer);
 
-  // Make io accessible in the app
   app.set("io", io);
 
   httpServer.listen(PORT, () => {
