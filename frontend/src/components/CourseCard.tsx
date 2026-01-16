@@ -1,20 +1,9 @@
 import { Link } from "react-router-dom";
 import { Star, Users } from "lucide-react";
+import { type Course } from "../types";
 
 interface CourseCardProps {
-  course: {
-    id: string;
-    title: string;
-    description: string;
-    thumbnail?: string;
-    price: number;
-    level: string;
-    averageRating: number;
-    totalStudents: number;
-    instructor: {
-      name: string;
-    };
-  };
+  course: Course;
 }
 
 export const CourseCard = ({ course }: CourseCardProps) => {

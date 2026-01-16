@@ -1,22 +1,44 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useMutation } from "@apollo/client/react";
+import { UserPlus, Mail, Lock, User } from "lucide-react";
 import { REGISTER } from "../graphql/mutations";
 import { useUserStore } from "../store/userStore";
-import { UserPlus, Mail, Lock, User } from "lucide-react";
-import { useMutation } from "@apollo/client/react";
+import type { User as UserType } from "../types";
+
+interface RegisterResponse {
+  register: {
+    token: string;
+    user: UserType;
+  };
+}
+
+interface RegisterVariables {
+  input: {
+    name: string;
+    email: string;
+    password: string;
+    role: "STUDENT" | "INSTRUCTOR";
+  };
+}
 
 const Register = () => {
   const navigate = useNavigate();
   const { setUser, setToken } = useUserStore();
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<RegisterVariables["input"]>({
     name: "",
     email: "",
     password: "",
     role: "STUDENT",
   });
+
   const [error, setError] = useState("");
 
-  const [register, { loading }] = useMutation(REGISTER, {
+  const [register, { loading }] = useMutation<
+    RegisterResponse,
+    RegisterVariables
+  >(REGISTER, {
     onCompleted: (data) => {
       setToken(data.register.token);
       setUser(data.register.user);
@@ -31,15 +53,11 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
-    try {
-      await register({
-        variables: {
-          input: formData,
-        },
-      });
-    } catch (err) {
-      console.error("Register error:", err);
-    }
+    await register({
+      variables: {
+        input: formData,
+      },
+    });
   };
 
   return (
@@ -124,7 +142,10 @@ const Register = () => {
               className="input-field"
               value={formData.role}
               onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
+                setFormData({
+                  ...formData,
+                  role: e.target.value as "STUDENT" | "INSTRUCTOR",
+                })
               }
             >
               <option value="STUDENT">Student</option>

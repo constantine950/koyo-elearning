@@ -1,47 +1,63 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useMutation } from "@apollo/client/react";
+import { LogIn, Mail, Lock } from "lucide-react";
 import { LOGIN } from "../graphql/mutations";
 import { useUserStore } from "../store/userStore";
-import { LogIn, Mail, Lock } from "lucide-react";
-import { useMutation } from "@apollo/client/react";
+import type { User } from "../types";
+
+interface LoginResponse {
+  login: {
+    token: string;
+    user: User;
+  };
+}
+
+interface LoginVariables {
+  input: {
+    email: string;
+    password: string;
+  };
+}
 
 const Login = () => {
   const navigate = useNavigate();
   const { setUser, setToken } = useUserStore();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
   const [error, setError] = useState("");
 
-  const [login, { loading }] = useMutation(LOGIN, {
-    onCompleted: (data) => {
-      setToken(data.login.token);
-      setUser(data.login.user);
-      navigate("/");
-    },
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
+  const [login, { loading }] = useMutation<LoginResponse, LoginVariables>(
+    LOGIN,
+    {
+      onCompleted: (data) => {
+        setToken(data.login.token);
+        setUser(data.login.user);
+        navigate("/");
+      },
+      onError: (err) => {
+        setError(err.message);
+      },
+    }
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    try {
-      await login({
-        variables: {
-          input: formData,
-        },
-      });
-    } catch (err) {
-      console.error("Login error:", err);
-    }
+    await login({
+      variables: {
+        input: formData,
+      },
+    });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary-500 to-primary-700 px-4">
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
           <LogIn className="w-12 h-12 text-primary-600 mx-auto mb-4" />

@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation } from "@apollo/client/react";
 import { GET_COURSE, GET_REVIEWS, IS_ENROLLED } from "../graphql/queries";
 import { ENROLL_COURSE, ADD_REVIEW } from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
@@ -13,9 +12,35 @@ import {
   CheckCircle,
   BookOpen,
 } from "lucide-react";
+import type { Course, Review, Lesson } from "../types";
+import { useMutation, useQuery } from "@apollo/client/react";
+
+interface GetCourseData {
+  getCourse: Course;
+}
+
+interface GetReviewsData {
+  getReviews: Review[];
+}
+
+interface IsEnrolledData {
+  isEnrolled: boolean;
+}
+
+interface EnrollCourseData {
+  enrollCourse: {
+    id: string;
+    enrolledAt: string;
+    progress: number;
+  };
+}
+
+interface AddReviewData {
+  addReview: Review;
+}
 
 const CourseDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useUserStore();
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -24,30 +49,38 @@ const CourseDetails = () => {
     comment: "",
   });
 
-  const { data: courseData, loading: courseLoading } = useQuery(GET_COURSE, {
-    variables: { id },
-  });
+  const { data: courseData, loading: courseLoading } = useQuery<GetCourseData>(
+    GET_COURSE,
+    {
+      variables: { id },
+      skip: !id,
+    }
+  );
 
-  const { data: reviewsData } = useQuery(GET_REVIEWS, {
+  const { data: reviewsData } = useQuery<GetReviewsData>(GET_REVIEWS, {
     variables: { courseId: id },
+    skip: !id,
   });
 
-  const { data: enrolledData } = useQuery(IS_ENROLLED, {
+  const { data: enrolledData } = useQuery<IsEnrolledData>(IS_ENROLLED, {
     variables: { courseId: id },
-    skip: !user,
+    skip: !user || !id,
   });
 
-  const [enrollCourse, { loading: enrolling }] = useMutation(ENROLL_COURSE, {
-    onCompleted: () => {
-      alert("Successfully enrolled!");
-      window.location.reload();
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+  const [enrollCourse, { loading: enrolling }] = useMutation<EnrollCourseData>(
+    ENROLL_COURSE,
+    {
+      onCompleted: () => {
+        alert("Successfully enrolled!");
+        window.location.reload();
+      },
+      onError: (err) => {
+        alert(err.message);
+      },
+    }
+  );
 
-  const [addReview] = useMutation(ADD_REVIEW, {
+  const [addReview] = useMutation<AddReviewData>(ADD_REVIEW, {
     onCompleted: () => {
       setShowReviewForm(false);
       setReviewData({ rating: 5, comment: "" });
@@ -95,13 +128,18 @@ const CourseDetails = () => {
       return;
     }
 
+    if (!id) return;
+
     await enrollCourse({
       variables: { courseId: id },
     });
   };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!id) return;
+
     await addReview({
       variables: {
         input: {
@@ -113,12 +151,17 @@ const CourseDetails = () => {
     });
   };
 
+  const totalDuration =
+    course.lessons?.reduce((sum, lesson) => sum + lesson.duration, 0) || 0;
+  const hours = Math.floor(totalDuration / 3600);
+  const minutes = Math.floor((totalDuration % 3600) / 60);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       {/* Course Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white py-12">
+      <div className="bg-linear-to-r from-primary-600 to-primary-700 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
             <div>
@@ -205,7 +248,7 @@ const CourseDetails = () => {
 
               {course.lessons && course.lessons.length > 0 ? (
                 <div className="space-y-3">
-                  {course.lessons.map((lesson: any, index: number) => (
+                  {course.lessons.map((lesson: Lesson, index: number) => (
                     <div
                       key={lesson.id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-primary-500 transition-colors"
@@ -312,15 +355,15 @@ const CourseDetails = () => {
 
               {reviews.length > 0 ? (
                 <div className="space-y-4">
-                  {reviews.map((review: any) => (
+                  {reviews.map((review: Review) => (
                     <div
                       key={review.id}
-                      className="border-b border-gray-200 pb-4"
+                      className="border-b border-gray-200 pb-4 last:border-0"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-medium">
-                            {review.student.name[0]}
+                            {review.student.name[0].toUpperCase()}
                           </div>
                           <div>
                             <p className="font-medium">{review.student.name}</p>
@@ -365,6 +408,11 @@ const CourseDetails = () => {
                 </li>
                 <li className="flex items-center gap-3 text-gray-700">
                   <Clock className="w-5 h-5 text-primary-600" />
+                  {hours > 0 && `${hours}h `}
+                  {minutes}m of content
+                </li>
+                <li className="flex items-center gap-3 text-gray-700">
+                  <CheckCircle className="w-5 h-5 text-primary-600" />
                   Lifetime Access
                 </li>
                 <li className="flex items-center gap-3 text-gray-700">
@@ -375,7 +423,9 @@ const CourseDetails = () => {
 
               <div className="mt-6 pt-6 border-t">
                 <h4 className="font-medium mb-2">Instructor</h4>
-                <p className="text-gray-700">{course.instructor.name}</p>
+                <p className="text-gray-700 font-medium">
+                  {course.instructor.name}
+                </p>
                 <p className="text-sm text-gray-500">
                   {course.instructor.email}
                 </p>

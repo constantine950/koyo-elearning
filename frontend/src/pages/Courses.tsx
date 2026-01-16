@@ -4,12 +4,20 @@ import { GET_COURSES } from "../graphql/queries";
 import { CourseCard } from "../components/CourseCard";
 import { Navbar } from "../components/Navbar";
 import { Search } from "lucide-react";
+import type { Course } from "../types";
+
+interface GetCoursesResponse {
+  getCourses: Course[];
+}
 
 const Courses = () => {
-  const { data, loading, error } = useQuery(GET_COURSES);
+  const { data, loading, error } = useQuery<GetCoursesResponse>(GET_COURSES);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLevel, setSelectedLevel] = useState("all");
+  const [selectedLevel, setSelectedLevel] = useState<
+    "all" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED"
+  >("all");
 
   if (loading) {
     return (
@@ -19,9 +27,9 @@ const Courses = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="card animate-pulse">
-                <div className="aspect-video bg-gray-300 rounded-lg mb-4"></div>
-                <div className="h-6 bg-gray-300 rounded mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="aspect-video bg-gray-300 rounded-lg mb-4" />
+                <div className="h-6 bg-gray-300 rounded mb-2" />
+                <div className="h-4 bg-gray-300 rounded w-3/4" />
               </div>
             ))}
           </div>
@@ -43,18 +51,21 @@ const Courses = () => {
     );
   }
 
-  const courses = data?.getCourses || [];
+  const courses: Course[] = data?.getCourses ?? [];
 
-  // Get unique categories
-  const categories = ["all", ...new Set(courses.map((c: any) => c.category))];
+  const categories = [
+    "all",
+    ...Array.from(new Set(courses.map((course) => course.category))),
+  ];
 
-  // Filter courses
-  const filteredCourses = courses.filter((course: any) => {
+  const filteredCourses = courses.filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesCategory =
       selectedCategory === "all" || course.category === selectedCategory;
+
     const matchesLevel =
       selectedLevel === "all" || course.level === selectedLevel;
 
@@ -65,8 +76,8 @@ const Courses = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white py-16">
+      {/* Hero */}
+      <div className="bg-linear-to-r from-primary-600 to-primary-700 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Discover Your Next Skill
@@ -75,7 +86,7 @@ const Courses = () => {
             Learn from the best instructors and advance your career
           </p>
 
-          {/* Search Bar */}
+          {/* Search */}
           <div className="relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -89,7 +100,7 @@ const Courses = () => {
         </div>
       </div>
 
-      {/* Filters and Courses */}
+      {/* Filters & Courses */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-8">
@@ -102,9 +113,9 @@ const Courses = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat === "all" ? "All Categories" : cat}
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category === "all" ? "All Categories" : category}
                 </option>
               ))}
             </select>
@@ -117,7 +128,15 @@ const Courses = () => {
             <select
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
+              onChange={(e) =>
+                setSelectedLevel(
+                  e.target.value as
+                    | "all"
+                    | "BEGINNER"
+                    | "INTERMEDIATE"
+                    | "ADVANCED"
+                )
+              }
             >
               <option value="all">All Levels</option>
               <option value="BEGINNER">Beginner</option>
@@ -127,20 +146,20 @@ const Courses = () => {
           </div>
         </div>
 
-        {/* Results Count */}
+        {/* Count */}
         <p className="text-gray-600 mb-6">
           Showing {filteredCourses.length}{" "}
           {filteredCourses.length === 1 ? "course" : "courses"}
         </p>
 
-        {/* Course Grid */}
+        {/* Grid */}
         {filteredCourses.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No courses found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map((course: any) => (
+            {filteredCourses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </div>
