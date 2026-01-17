@@ -16,7 +16,8 @@ export const ProtectedRoute = ({
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole.toLowerCase()) {
+  // Compare roles in lowercase
+  if (requiredRole && user.role.toLowerCase() !== requiredRole.toLowerCase()) {
     return <Navigate to="/" replace />;
   }
 

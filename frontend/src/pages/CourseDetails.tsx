@@ -249,9 +249,16 @@ const CourseDetails = () => {
               {course.lessons && course.lessons.length > 0 ? (
                 <div className="space-y-3">
                   {course.lessons.map((lesson: Lesson, index: number) => (
-                    <div
+                    <button
                       key={lesson.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-primary-500 transition-colors"
+                      onClick={() => {
+                        if (isEnrolled || lesson.isFree) {
+                          navigate(`/courses/${id}/lessons/${lesson.id}`);
+                        } else {
+                          alert("Please enroll to access this lesson");
+                        }
+                      }}
+                      className="w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-primary-500 transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-medium">
@@ -279,7 +286,7 @@ const CourseDetails = () => {
                         )}
                         <PlayCircle className="w-5 h-5 text-primary-600" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : (

@@ -105,3 +105,50 @@ export const IS_ENROLLED = gql`
     isEnrolled(courseId: $courseId)
   }
 `;
+
+export const GET_LESSON = gql`
+  query GetLesson($id: ID!) {
+    getLesson(id: $id) {
+      id
+      title
+      description
+      videoURL
+      duration
+      order
+      courseId
+      isFree
+    }
+  }
+`;
+
+export const GET_LESSONS = gql`
+  query GetLessons($courseId: ID!) {
+    getLessons(courseId: $courseId) {
+      id
+      title
+      description
+      videoURL
+      duration
+      order
+      isFree
+    }
+  }
+`;
+
+export const GET_INSTRUCTOR_COURSES = gql`
+  query GetInstructorCourses {
+    getInstructorCourses {
+      id
+      title
+      description
+      thumbnail
+      category
+      price
+      level
+      totalStudents
+      averageRating
+      totalReviews
+      createdAt
+    }
+  }
+`;

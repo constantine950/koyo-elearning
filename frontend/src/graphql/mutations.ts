@@ -72,3 +72,36 @@ export const UPLOAD_IMAGE = gql`
     }
   }
 `;
+
+export const MARK_LESSON_COMPLETE = gql`
+  mutation MarkLessonComplete($lessonId: ID!) {
+    markLessonComplete(lessonId: $lessonId) {
+      id
+      progress
+      completedLessons {
+        id
+        title
+      }
+    }
+  }
+`;
+
+export const UPDATE_COURSE = gql`
+  mutation UpdateCourse($id: ID!, $input: UpdateCourseInput!) {
+    updateCourse(id: $id, input: $input) {
+      id
+      title
+      description
+      thumbnail
+      category
+      price
+      level
+    }
+  }
+`;
+
+export const DELETE_COURSE = gql`
+  mutation DeleteCourse($id: ID!) {
+    deleteCourse(id: $id)
+  }
+`;
