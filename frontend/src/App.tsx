@@ -12,11 +12,14 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import "./styles/index.css";
 import MyCourses from "./pages/MyCourses";
 import EditCourse from "./pages/EditCourse";
+import Analytics from "./pages/Analytics";
+import { ToastContainer } from "./components/ToastContainer";
 
 function App() {
   return (
     <ApolloProvider client={client}>
       <Router>
+        <ToastContainer />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -55,6 +58,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="instructor">
                 <EditCourse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/instructor/analytics"
+            element={
+              <ProtectedRoute requiredRole="instructor">
+                <Analytics />
               </ProtectedRoute>
             }
           />

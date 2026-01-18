@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { CREATE_COURSE, UPLOAD_IMAGE } from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
 import { Upload, X } from "lucide-react";
+import { compressImage } from "../utils/imageCompression";
+import { useToastStore } from "../store/toastStore";
 
 interface ImageData {
   uploadImage: { url: string };
@@ -24,27 +26,37 @@ const CreateCourse = () => {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [uploading, setUploading] = useState(false);
+  const { addToast } = useToastStore();
 
   const [uploadImage] = useMutation<ImageData>(UPLOAD_IMAGE);
   const [createCourse, { loading }] = useMutation(CREATE_COURSE, {
     onCompleted: () => {
-      alert("Course created successfully!");
+      addToast("Course created successfully!", "success");
       navigate("/instructor/dashboard");
     },
-    onError: (err) => {
-      alert(err.message);
+    onError: () => {
+      addToast("Error creating course", "error");
     },
   });
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       setThumbnailFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+
+      try {
+        // Compress image before preview
+        const compressedBase64 = await compressImage(file, 1200, 0.8);
+        setThumbnailPreview(compressedBase64);
+      } catch (error) {
+        console.error("Error compressing image:", error);
+        addToast(
+          "Error processing image. Please try a different image.",
+          "error"
+        );
+      }
     }
   };
 

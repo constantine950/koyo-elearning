@@ -1,6 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "../store/userStore";
-import { LogOut, BookOpen, LayoutDashboard, GraduationCap } from "lucide-react";
+import {
+  LogOut,
+  BookOpen,
+  LayoutDashboard,
+  GraduationCap,
+  TrendingUp,
+} from "lucide-react";
 
 export const Navbar = () => {
   const { user, logout } = useUserStore();
@@ -16,11 +22,14 @@ export const Navbar = () => {
   const isStudent = user?.role?.toLowerCase() === "student";
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link
+            to="/"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <BookOpen className="w-8 h-8 text-primary-600" />
             <span className="text-2xl font-bold text-primary-600">Koyo</span>
           </Link>
@@ -33,23 +42,32 @@ export const Navbar = () => {
                 <div className="flex items-center gap-4">
                   <Link
                     to="/"
-                    className="text-gray-700 hover:text-primary-600 transition-colors"
+                    className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
                   >
                     Courses
                   </Link>
 
                   {isInstructor ? (
-                    <Link
-                      to="/instructor/dashboard"
-                      className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors"
-                    >
-                      <LayoutDashboard className="w-5 h-5" />
-                      Dashboard
-                    </Link>
+                    <>
+                      <Link
+                        to="/instructor/dashboard"
+                        className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      >
+                        <LayoutDashboard className="w-5 h-5" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/instructor/analytics"
+                        className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                      >
+                        <TrendingUp className="w-5 h-5" />
+                        Analytics
+                      </Link>
+                    </>
                   ) : isStudent ? (
                     <Link
                       to="/my-courses"
-                      className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors"
+                      className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors font-medium"
                     >
                       <GraduationCap className="w-5 h-5" />
                       My Courses
@@ -70,7 +88,7 @@ export const Navbar = () => {
 
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors"
+                    className="flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
                     title="Logout"
                   >
                     <LogOut className="w-5 h-5" />
@@ -81,7 +99,7 @@ export const Navbar = () => {
               <>
                 <Link
                   to="/"
-                  className="text-gray-700 hover:text-primary-600 transition-colors"
+                  className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
                 >
                   Courses
                 </Link>

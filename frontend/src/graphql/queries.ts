@@ -152,3 +152,28 @@ export const GET_INSTRUCTOR_COURSES = gql`
     }
   }
 `;
+
+export const GET_INSTRUCTOR_ANALYTICS = gql`
+  query GetInstructorAnalytics {
+    getInstructorAnalytics {
+      totalStudents
+      totalCourses
+      totalRevenue
+      averageRating
+      totalReviews
+      monthlyEnrollments {
+        month
+        count
+      }
+      topCourses {
+        course {
+          id
+          title
+          thumbnail
+        }
+        enrollmentCount
+        revenue
+      }
+    }
+  }
+`;

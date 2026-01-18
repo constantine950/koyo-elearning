@@ -5,6 +5,7 @@ import { DELETE_COURSE } from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
 import { Plus, BookOpen, Users, Star, Edit, Trash2 } from "lucide-react";
 import { type Course } from "../types";
+import { useToastStore } from "../store/toastStore";
 
 interface GetInstructorCoursesData {
   getInstructorCourses: Course[];
@@ -12,6 +13,7 @@ interface GetInstructorCoursesData {
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
 
   const { data, loading, refetch } = useQuery<GetInstructorCoursesData>(
     GET_INSTRUCTOR_COURSES
@@ -19,11 +21,11 @@ const InstructorDashboard = () => {
 
   const [deleteCourse] = useMutation(DELETE_COURSE, {
     onCompleted: () => {
-      alert("Course deleted successfully!");
+      addToast("Course deleted successfully!", "success");
       refetch();
     },
-    onError: (err) => {
-      alert(`Error: ${err.message}`);
+    onError: () => {
+      addToast("Error deleting course", "error");
     },
   });
 

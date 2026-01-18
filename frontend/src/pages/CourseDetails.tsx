@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Course, Review, Lesson } from "../types";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { useToastStore } from "../store/toastStore";
 
 interface GetCourseData {
   getCourse: Course;
@@ -42,6 +43,7 @@ interface AddReviewData {
 const CourseDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
   const { user } = useUserStore();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({
@@ -71,11 +73,12 @@ const CourseDetails = () => {
     ENROLL_COURSE,
     {
       onCompleted: () => {
-        alert("Successfully enrolled!");
+        addToast("Successfully enrolled!", "success");
         window.location.reload();
       },
       onError: (err) => {
         alert(err.message);
+        addToast(`${err.message}`, "error");
       },
     }
   );
