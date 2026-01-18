@@ -77,23 +77,25 @@ const CourseDetails = () => {
         window.location.reload();
       },
       onError: (err) => {
-        alert(err.message);
         addToast(`${err.message}`, "error");
       },
     }
   );
 
-  const [addReview] = useMutation<AddReviewData>(ADD_REVIEW, {
-    onCompleted: () => {
-      setShowReviewForm(false);
-      setReviewData({ rating: 5, comment: "" });
-      alert("Review added successfully!");
-      window.location.reload();
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+  const [addReview, { loading: reviewLoading }] = useMutation<AddReviewData>(
+    ADD_REVIEW,
+    {
+      onCompleted: () => {
+        setShowReviewForm(false);
+        setReviewData({ rating: 5, comment: "" });
+        addToast("Review added successfully!", "success");
+        window.location.reload();
+      },
+      onError: (err) => {
+        addToast(err.message, "error");
+      },
+    }
+  );
 
   if (courseLoading) {
     return (
@@ -301,14 +303,16 @@ const CourseDetails = () => {
             <div className="card">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">Student Reviews</h2>
-                {user && user.role === "student" && isEnrolled && (
-                  <button
-                    onClick={() => setShowReviewForm(!showReviewForm)}
-                    className="btn-primary text-sm"
-                  >
-                    Write a Review
-                  </button>
-                )}
+                {user &&
+                  user.role.toLowerCase() === "student" &&
+                  isEnrolled && (
+                    <button
+                      onClick={() => setShowReviewForm(!showReviewForm)}
+                      className="btn-primary text-sm"
+                    >
+                      {showReviewForm ? "Cancel" : "Write a Review"}
+                    </button>
+                  )}
               </div>
 
               {showReviewForm && (
@@ -320,22 +324,29 @@ const CourseDetails = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Rating
                     </label>
-                    <select
-                      className="input-field"
-                      value={reviewData.rating}
-                      onChange={(e) =>
-                        setReviewData({
-                          ...reviewData,
-                          rating: parseInt(e.target.value),
-                        })
-                      }
-                    >
+                    <div className="flex items-center gap-2">
                       {[5, 4, 3, 2, 1].map((r) => (
-                        <option key={r} value={r}>
-                          {r} Star{r !== 1 && "s"}
-                        </option>
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() =>
+                            setReviewData({ ...reviewData, rating: r })
+                          }
+                          className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+                            reviewData.rating === r
+                              ? "bg-primary-600 text-white"
+                              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                          }`}
+                        >
+                          <Star
+                            className={`w-4 h-4 ${
+                              reviewData.rating === r ? "fill-white" : ""
+                            }`}
+                          />
+                          {r}
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   </div>
 
                   <div className="mb-4">
@@ -347,6 +358,7 @@ const CourseDetails = () => {
                       rows={4}
                       required
                       maxLength={500}
+                      placeholder="Share your experience with this course..."
                       value={reviewData.comment}
                       onChange={(e) =>
                         setReviewData({
@@ -355,11 +367,30 @@ const CourseDetails = () => {
                         })
                       }
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {reviewData.comment.length}/500 characters
+                    </p>
                   </div>
 
-                  <button type="submit" className="btn-primary">
-                    Submit Review
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={reviewLoading}
+                      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {reviewLoading ? "Submitting..." : "Submit Review"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowReviewForm(false);
+                        setReviewData({ rating: 5, comment: "" });
+                      }}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </form>
               )}
 
