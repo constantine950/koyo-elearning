@@ -25,6 +25,7 @@ import {
 import type { Course, Review, Lesson } from "../types";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useToastStore } from "../store/toastStore";
+import { formatDate } from "../utils/formatDate";
 
 interface GetCourseData {
   getCourse: Course;
@@ -527,7 +528,7 @@ const CourseDetails = () => {
                           </div>
                         </div>
                         <span className="text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString()}
+                          {formatDate(review.createdAt)}
                         </span>
                       </div>
                       <p className="text-gray-700">{review.comment}</p>

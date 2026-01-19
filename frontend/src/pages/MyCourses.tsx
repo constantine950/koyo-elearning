@@ -4,6 +4,7 @@ import { Navbar } from "../components/Navbar";
 import { Link } from "react-router-dom";
 import { BookOpen, PlayCircle } from "lucide-react";
 import { type Enrollment } from "../types";
+import { formatDate } from "../utils/formatDate";
 
 interface MyCoursesData {
   myCourses: Enrollment[];
@@ -117,8 +118,7 @@ const MyCourses = () => {
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-4 border-t">
                   <span className="text-sm text-gray-500">
-                    Enrolled{" "}
-                    {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                    Enrolled {formatDate(enrollment.enrolledAt)}
                   </span>
                   <button className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium text-sm">
                     <PlayCircle className="w-4 h-4" />
