@@ -177,3 +177,35 @@ export const GET_INSTRUCTOR_ANALYTICS = gql`
     }
   }
 `;
+
+export const GET_MY_REVIEW = gql`
+  query GetMyReview($courseId: ID!) {
+    getMyReview(courseId: $courseId) {
+      id
+      rating
+      comment
+      createdAt
+    }
+  }
+`;
+
+export const GET_TOP_RATED_COURSES = gql`
+  query GetTopRatedCourses($limit: Int) {
+    getTopRatedCourses(limit: $limit) {
+      id
+      title
+      description
+      thumbnail
+      category
+      price
+      level
+      averageRating
+      totalStudents
+      totalReviews
+      instructor {
+        id
+        name
+      }
+    }
+  }
+`;

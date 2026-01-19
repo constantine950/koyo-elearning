@@ -2,10 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GET_COURSE } from "../graphql/queries";
-import { UPDATE_COURSE, UPLOAD_IMAGE } from "../graphql/mutations";
+import {
+  DELETE_LESSON,
+  UPDATE_COURSE,
+  UPLOAD_IMAGE,
+} from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
 import { Edit, Plus, Trash2, Upload, X } from "lucide-react";
-import { type Course } from "../types";
+import { type Course, type Lesson } from "../types";
 import { compressImage } from "../utils/imageCompression";
 import { useToastStore } from "../store/toastStore";
 
@@ -166,6 +170,28 @@ const EditCourseForm = ({
     }
   };
 
+  const [deleteLesson] = useMutation(DELETE_LESSON, {
+    onCompleted: () => {
+      addToast("Lesson deleted successfully!", "success");
+      window.location.reload();
+    },
+    onError: (err) => {
+      addToast(err.message, "error");
+    },
+  });
+
+  const handleDeleteLesson = async (lessonId: string, lessonTitle: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${lessonTitle}"?`
+    );
+
+    if (confirmed) {
+      await deleteLesson({
+        variables: { id: lessonId },
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -280,37 +306,39 @@ const EditCourseForm = ({
             {uploading ? "Uploading..." : loading ? "Updating..." : "Update"}
           </button>
         </form>
-        {courseData?.getCourse?.lessons && (
+        {courseData?.getCourse && (
           <div className="card mt-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Course Lessons</h2>
               <button
+                type="button"
                 onClick={() =>
                   navigate(`/instructor/courses/${course.id}/lessons/create`)
                 }
-                className="btn-primary text-sm"
+                className="btn-primary text-sm flex items-center gap-2"
               >
-                <Plus className="w-4 h-4 inline mr-2" />
+                <Plus className="w-4 h-4" />
                 Add Lesson
               </button>
             </div>
 
-            {courseData.getCourse.lessons.length === 0 ? (
-              <p className="text-gray-500">
+            {!courseData.getCourse.lessons ||
+            courseData.getCourse.lessons.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">
                 No lessons yet. Add your first lesson!
               </p>
             ) : (
               <div className="space-y-3">
-                {courseData.getCourse.lessons.map((lesson, index) => (
+                {courseData.getCourse.lessons.map((lesson: Lesson) => (
                   <div
                     key={lesson.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:border-primary-300 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold text-primary-600">
-                        {index + 1}
+                    <div className="flex items-center gap-4 flex-1">
+                      <span className="font-bold text-primary-600 text-lg w-8">
+                        {lesson.order}
                       </span>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-medium">{lesson.title}</h3>
                         <p className="text-sm text-gray-500">
                           {Math.floor(lesson.duration / 60)}m
@@ -319,10 +347,26 @@ const EditCourseForm = ({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg">
-                        <Edit className="w-4 h-4" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            `/instructor/courses/${course.id}/lessons/${lesson.id}/edit`
+                          )
+                        }
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Edit lesson"
+                      >
+                        <Edit className="w-4 h-4 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDeleteLesson(lesson.id, lesson.title)
+                        }
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete lesson"
+                      >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
                     </div>

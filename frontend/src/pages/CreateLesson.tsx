@@ -2,10 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GET_COURSE } from "../graphql/queries";
-import { CREATE_LESSON, UPLOAD_VIDEO } from "../graphql/mutations";
+import { CREATE_LESSON } from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
-import { Upload, X } from "lucide-react";
 import { useToastStore } from "../store/toastStore";
+import type { Course } from "../types";
+
+interface GetCourseData {
+  getCourse: Course;
+}
 
 const CreateLesson = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -21,15 +25,11 @@ const CreateLesson = () => {
     isFree: false,
   });
 
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const { data: courseData } = useQuery(GET_COURSE, {
+  const { data: courseData } = useQuery<GetCourseData>(GET_COURSE, {
     variables: { id: courseId },
     skip: !courseId,
   });
 
-  const [uploadVideo] = useMutation(UPLOAD_VIDEO);
   const [createLesson, { loading }] = useMutation(CREATE_LESSON, {
     onCompleted: () => {
       addToast("Lesson created successfully!", "success");
@@ -40,77 +40,24 @@ const CreateLesson = () => {
     },
   });
 
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 100 * 1024 * 1024) {
-        addToast("Video file must be less than 100MB", "error");
-        return;
-      }
-      setVideoFile(file);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!videoFile && !formData.videoURL) {
-      addToast("Please upload a video or provide a video URL", "error");
+    if (!formData.videoURL.trim()) {
+      addToast("Please provide a video URL", "error");
       return;
     }
 
-    try {
-      let videoURL = formData.videoURL;
-
-      // Upload video if file selected
-      if (videoFile) {
-        setUploading(true);
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64Video = reader.result as string;
-          const { data } = await uploadVideo({
-            variables: {
-              file: base64Video,
-              folder: "lessons",
-            },
-          });
-
-          if (data?.uploadVideo?.url) {
-            videoURL = data.uploadVideo.url;
-          }
-          setUploading(false);
-
-          // Create lesson after upload
-          await createLesson({
-            variables: {
-              input: {
-                ...formData,
-                videoURL,
-                courseId,
-                duration: parseInt(formData.duration.toString()),
-                order: parseInt(formData.order.toString()),
-              },
-            },
-          });
-        };
-        reader.readAsDataURL(videoFile);
-      } else {
-        // Create lesson with URL
-        await createLesson({
-          variables: {
-            input: {
-              ...formData,
-              courseId,
-              duration: parseInt(formData.duration.toString()),
-              order: parseInt(formData.order.toString()),
-            },
-          },
-        });
-      }
-    } catch (err) {
-      console.error("Error creating lesson:", err);
-      setUploading(false);
-    }
+    await createLesson({
+      variables: {
+        input: {
+          ...formData,
+          courseId,
+          duration: parseInt(formData.duration.toString()),
+          order: parseInt(formData.order.toString()),
+        },
+      },
+    });
   };
 
   return (
@@ -124,56 +71,25 @@ const CreateLesson = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="card space-y-6">
-          {/* Video Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Video Upload (or provide URL below)
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-              {videoFile ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">
-                    {videoFile.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setVideoFile(null)}
-                    className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <label className="cursor-pointer flex flex-col items-center">
-                  <Upload className="w-12 h-12 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-600">
-                    Click to upload video (Max 100MB)
-                  </span>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={handleVideoChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-
           {/* Video URL */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Or Video URL (YouTube, Vimeo, etc.)
+              Video URL * (YouTube, Vimeo, or direct link)
             </label>
             <input
               type="url"
+              required
               className="input-field"
-              placeholder="https://..."
+              placeholder="https://www.youtube.com/watch?v=..."
               value={formData.videoURL}
               onChange={(e) =>
                 setFormData({ ...formData, videoURL: e.target.value })
               }
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter a valid video URL from YouTube, Vimeo, or a direct video
+              link
+            </p>
           </div>
 
           {/* Title */}
@@ -185,6 +101,7 @@ const CreateLesson = () => {
               type="text"
               required
               className="input-field"
+              placeholder="Introduction to TypeScript"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -200,6 +117,7 @@ const CreateLesson = () => {
             <textarea
               rows={3}
               className="input-field"
+              placeholder="What will students learn in this lesson?"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -218,14 +136,19 @@ const CreateLesson = () => {
                 required
                 min="0"
                 className="input-field"
+                placeholder="600"
                 value={formData.duration}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    duration: parseInt(e.target.value),
+                    duration: parseInt(e.target.value) || 0,
                   })
                 }
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.duration > 0 &&
+                  `≈ ${Math.floor(formData.duration / 60)} minutes`}
+              </p>
             </div>
 
             <div>
@@ -237,9 +160,13 @@ const CreateLesson = () => {
                 required
                 min="1"
                 className="input-field"
+                placeholder="1"
                 value={formData.order}
                 onChange={(e) =>
-                  setFormData({ ...formData, order: parseInt(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    order: parseInt(e.target.value) || 1,
+                  })
                 }
               />
             </div>
@@ -268,14 +195,10 @@ const CreateLesson = () => {
           <div className="flex items-center gap-4">
             <button
               type="submit"
-              disabled={loading || uploading}
+              disabled={loading}
               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {uploading
-                ? "Uploading Video..."
-                : loading
-                ? "Creating..."
-                : "Create Lesson"}
+              {loading ? "Creating..." : "Create Lesson"}
             </button>
             <button
               type="button"

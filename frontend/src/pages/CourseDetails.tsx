@@ -1,6 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { GET_COURSE, GET_REVIEWS, IS_ENROLLED } from "../graphql/queries";
-import { ENROLL_COURSE, ADD_REVIEW } from "../graphql/mutations";
+import {
+  GET_COURSE,
+  GET_MY_REVIEW,
+  GET_REVIEWS,
+  IS_ENROLLED,
+} from "../graphql/queries";
+import {
+  ENROLL_COURSE,
+  ADD_REVIEW,
+  DELETE_REVIEW,
+  UPDATE_REVIEW,
+} from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
 import { useUserStore } from "../store/userStore";
 import { useState } from "react";
@@ -22,6 +32,10 @@ interface GetCourseData {
 
 interface GetReviewsData {
   getReviews: Review[];
+}
+
+interface GetMyReviewData {
+  getMyReview: Review | null;
 }
 
 interface IsEnrolledData {
@@ -97,6 +111,39 @@ const CourseDetails = () => {
     }
   );
 
+  const [deleteReview] = useMutation(DELETE_REVIEW, {
+    onCompleted: () => {
+      addToast("Review deleted successfully!", "success");
+      window.location.reload();
+    },
+    onError: (err) => {
+      addToast(err.message, "error");
+    },
+  });
+
+  // Add this query
+  const { data: myReviewData } = useQuery<GetMyReviewData>(GET_MY_REVIEW, {
+    variables: { courseId: id },
+    skip: !user || !id,
+  });
+
+  const myReview = myReviewData?.getMyReview;
+
+  // Add these mutations
+  const [updateReview, { loading: updateLoading }] = useMutation(
+    UPDATE_REVIEW,
+    {
+      onCompleted: () => {
+        setShowReviewForm(false);
+        addToast("Review updated successfully!", "success");
+        window.location.reload();
+      },
+      onError: (err) => {
+        addToast(err.message, "error");
+      },
+    }
+  );
+
   if (courseLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -145,15 +192,44 @@ const CourseDetails = () => {
 
     if (!id) return;
 
-    await addReview({
-      variables: {
-        input: {
-          courseId: id,
-          rating: reviewData.rating,
-          comment: reviewData.comment,
+    if (myReview) {
+      // Update existing review
+      await updateReview({
+        variables: {
+          id: myReview.id,
+          input: {
+            rating: reviewData.rating,
+            comment: reviewData.comment,
+          },
         },
-      },
-    });
+      });
+    } else {
+      // Create new review
+      await addReview({
+        variables: {
+          input: {
+            courseId: id,
+            rating: reviewData.rating,
+            comment: reviewData.comment,
+          },
+        },
+      });
+    }
+  };
+
+  // Add delete handler
+  const handleDeleteReview = async () => {
+    if (!myReview) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your review?"
+    );
+
+    if (confirmed) {
+      await deleteReview({
+        variables: { id: myReview.id },
+      });
+    }
   };
 
   const totalDuration =
@@ -306,12 +382,36 @@ const CourseDetails = () => {
                 {user &&
                   user.role.toLowerCase() === "student" &&
                   isEnrolled && (
-                    <button
-                      onClick={() => setShowReviewForm(!showReviewForm)}
-                      className="btn-primary text-sm"
-                    >
-                      {showReviewForm ? "Cancel" : "Write a Review"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {myReview && (
+                        <button
+                          onClick={handleDeleteReview}
+                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                        >
+                          Delete My Review
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          if (myReview) {
+                            setReviewData({
+                              rating: myReview.rating,
+                              comment: myReview.comment,
+                            });
+                          }
+                          setShowReviewForm(!showReviewForm);
+                        }}
+                        className="btn-primary text-sm"
+                      >
+                        {myReview
+                          ? showReviewForm
+                            ? "Cancel"
+                            : "Edit My Review"
+                          : showReviewForm
+                          ? "Cancel"
+                          : "Write a Review"}
+                      </button>
+                    </div>
                   )}
               </div>
 
@@ -375,10 +475,14 @@ const CourseDetails = () => {
                   <div className="flex items-center gap-3">
                     <button
                       type="submit"
-                      disabled={reviewLoading}
+                      disabled={reviewLoading || updateLoading}
                       className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {reviewLoading ? "Submitting..." : "Submit Review"}
+                      {reviewLoading || updateLoading
+                        ? "Submitting..."
+                        : myReview
+                        ? "Update Review"
+                        : "Submit Review"}
                     </button>
                     <button
                       type="button"
