@@ -105,3 +105,64 @@ export const DELETE_COURSE = gql`
     deleteCourse(id: $id)
   }
 `;
+
+export const CREATE_LESSON = gql`
+  mutation CreateLesson($input: CreateLessonInput!) {
+    createLesson(input: $input) {
+      id
+      title
+      description
+      videoURL
+      duration
+      order
+      isFree
+    }
+  }
+`;
+
+export const UPDATE_LESSON = gql`
+  mutation UpdateLesson($id: ID!, $input: UpdateLessonInput!) {
+    updateLesson(id: $id, input: $input) {
+      id
+      title
+      description
+      videoURL
+      duration
+      order
+      isFree
+    }
+  }
+`;
+
+export const DELETE_LESSON = gql`
+  mutation DeleteLesson($id: ID!) {
+    deleteLesson(id: $id)
+  }
+`;
+
+export const UPDATE_REVIEW = gql`
+  mutation UpdateReview($id: ID!, $input: UpdateReviewInput!) {
+    updateReview(id: $id, input: $input) {
+      id
+      rating
+      comment
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_REVIEW = gql`
+  mutation DeleteReview($id: ID!) {
+    deleteReview(id: $id)
+  }
+`;
+
+export const UPLOAD_VIDEO = gql`
+  mutation UploadVideo($file: String!, $folder: String!) {
+    uploadVideo(file: $file, folder: $folder) {
+      url
+      publicId
+      format
+    }
+  }
+`;

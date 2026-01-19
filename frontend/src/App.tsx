@@ -14,6 +14,7 @@ import MyCourses from "./pages/MyCourses";
 import EditCourse from "./pages/EditCourse";
 import Analytics from "./pages/Analytics";
 import { ToastContainer } from "./components/ToastContainer";
+import CreateLesson from "./pages/CreateLesson";
 
 function App() {
   return (
@@ -66,6 +67,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="instructor">
                 <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/instructor/courses/:courseId/lessons/create"
+            element={
+              <ProtectedRoute requiredRole="instructor">
+                <CreateLesson />
               </ProtectedRoute>
             }
           />

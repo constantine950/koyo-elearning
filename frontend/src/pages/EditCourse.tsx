@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { GET_COURSE } from "../graphql/queries";
 import { UPDATE_COURSE, UPLOAD_IMAGE } from "../graphql/mutations";
 import { Navbar } from "../components/Navbar";
-import { Upload, X } from "lucide-react";
+import { Edit, Plus, Trash2, Upload, X } from "lucide-react";
 import { type Course } from "../types";
 import { compressImage } from "../utils/imageCompression";
 import { useToastStore } from "../store/toastStore";
@@ -65,10 +65,16 @@ const EditCourse = () => {
     );
   }
 
-  return <EditCourseForm course={data.getCourse} />;
+  return <EditCourseForm course={data.getCourse} courseData={data} />;
 };
 
-const EditCourseForm = ({ course }: { course: Course }) => {
+const EditCourseForm = ({
+  course,
+  courseData,
+}: {
+  course: Course;
+  courseData: GetCourseData;
+}) => {
   const navigate = useNavigate();
 
   // ✅ State initialized ONCE from props
@@ -274,6 +280,58 @@ const EditCourseForm = ({ course }: { course: Course }) => {
             {uploading ? "Uploading..." : loading ? "Updating..." : "Update"}
           </button>
         </form>
+        {courseData?.getCourse?.lessons && (
+          <div className="card mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Course Lessons</h2>
+              <button
+                onClick={() =>
+                  navigate(`/instructor/courses/${course.id}/lessons/create`)
+                }
+                className="btn-primary text-sm"
+              >
+                <Plus className="w-4 h-4 inline mr-2" />
+                Add Lesson
+              </button>
+            </div>
+
+            {courseData.getCourse.lessons.length === 0 ? (
+              <p className="text-gray-500">
+                No lessons yet. Add your first lesson!
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {courseData.getCourse.lessons.map((lesson, index) => (
+                  <div
+                    key={lesson.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold text-primary-600">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <h3 className="font-medium">{lesson.title}</h3>
+                        <p className="text-sm text-gray-500">
+                          {Math.floor(lesson.duration / 60)}m
+                          {lesson.isFree && " • Free Preview"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 hover:bg-red-50 rounded-lg">
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
