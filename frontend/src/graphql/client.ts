@@ -6,9 +6,7 @@ import {
 } from "@apollo/client";
 
 const httpLink = new HttpLink({
-  uri:
-    import.meta.env.VITE_API_URL ||
-    "https://koyo-elearning.onrender.com/graphql",
+  uri: "https://koyo-elearning.onrender.com/graphql",
 });
 
 const authLink = new ApolloLink((operation, forward) => {
