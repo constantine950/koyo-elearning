@@ -7,11 +7,17 @@ import { initializeSocket } from "./src/config/socket";
 const PORT = process.env.PORT || 4000;
 
 startServer().then((app) => {
+  app.get("/health", (_req, res) => {
+    res.status(200).json({
+      status: "ok",
+      uptime: process.uptime(),
+    });
+  });
+
   const httpServer = createServer(app);
 
   // Initialize Socket.io
   const io = initializeSocket(httpServer);
-
   app.set("io", io);
 
   httpServer.listen(PORT, () => {
